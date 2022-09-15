@@ -22,27 +22,6 @@ data "alkira_segment" "mgmt" {
   name = var.mgmt_segment
 }
 
-resource "alkira_credential_pan" "service" {
-  name        = var.credential.name
-  username    = var.credential.username
-  password    = var.credential.password
-  license_key = var.credential.license_key
-}
-
-resource "alkira_credential_pan_instance" "instance" {
-
-  for_each = {
-    for instance in var.instances : instance.name => instance
-  }
-
-  name        = each.value.name
-  username    = each.value.username
-  password    = each.value.password
-  license_key = each.value.license_key
-  auth_code   = each.value.auth_code
-  auth_key    = each.value.auth_key
-}
-
 resource "alkira_service_pan" "service" {
 
   # service 
@@ -54,10 +33,10 @@ resource "alkira_service_pan" "service" {
   segment_ids             = local.segment_id_list
   management_segment_id   = data.alkira_segment.mgmt.id
 
-
   # credentials + licensing
   bundle                  = var.bundle
-  credential_id           = alkira_credential_pan.service.id
+  pan_username            = var.credential.username
+  pan_password            = var.credential.password
   license_type            = var.credential.license_type
   registration_pin_id     = var.registration_pin.id
   registration_pin_value  = var.registration_pin.value
@@ -79,26 +58,27 @@ resource "alkira_service_pan" "service" {
   # handle nested schema for instances 
   dynamic "instance" {
     for_each = {
-      for instance in alkira_credential_pan_instance.instance : instance.name => instance
+      for o in var.instances : o.name => o
     }
 
     content {
-      name          = instance.value.name
-      credential_id = instance.value.id
+      name      = instance.value.name
+      auth_code = instance.value.auth_code
+      auth_key  = instance.value.auth_key
     }
 
   }
 
  # handle nested schema for zone-to-group mappings
-  dynamic "zones_to_groups" {
+  dynamic "segment_options" {
     for_each = {
       for o in var.zones : o.name => o
     }
 
     content {
-      zone_name  = zones_to_groups.value.name
-      groups     = zones_to_groups.value.groups
-      segment_id = lookup(data.alkira_segment.zone, zones_to_groups.value.segment).id
+      zone_name  = segment_options.value.name
+      groups     = segment_options.value.groups
+      segment_id = lookup(data.alkira_segment.zone, segment_options.value.segment).id
     }
 
   }
