@@ -58,11 +58,10 @@ variable "credential" {
   description    = "Service credential values"
 
   type = object({
-    name         = string
-    username     = string
-    password     = string
-    license_key  = string
-    license_type = string
+    username         = optional(string)
+    password         = optional(string)
+    license_type     = optional(string)
+    license_sub_type = optional(string)
   })
   sensitive  = true
 }
@@ -114,8 +113,6 @@ variable "instances" {
 
   type = list(object({
     name          = string
-    username      = string
-    password      = string
     license_key   = string
     auth_code     = optional(string)
     auth_key      = optional(string)
