@@ -1,6 +1,7 @@
-variable "name" {
-  description = "Service name"
-  type        = string
+variable "billing_tags" {
+  description  = "Billing tags associated with service"
+  type         = list(string)
+  default      = []
 }
 
 variable "cxp" {
@@ -8,32 +9,18 @@ variable "cxp" {
   type        = string
 }
 
-variable "size" {
-  description = "Service size"
-  type        = string
-  default     = "SMALL"
-}
+variable "instances" {
+  description = <<EOF
+  Palo Alto instance configuration:
+    - 'auth_code' is required if using 'BRING_YOUR_OWN' license_type
+    - 'auth_key' is required if Panorama is managing firewalls
+  EOF
 
-variable "segments" {
-  description = "List of segments to associate with the service"
-  type        = list(string)
-}
-
-variable "mgmt_segment" {
-  description = "Management segment"
-  type        = string
-}
-
-variable "max_instance_count" {
-  description = "Max number of Panorama instances for auto-scale; defaults to 1 if Panorama is not used"
-  type        = number
-  default     = 1
-}
-
-variable "min_instance_count" {
-  description = "Minimum number of Panorama instances for auto-scale; defaults to 0 if Panorama is not used"
-  type        = number
-  default     = 0
+  type = list(object({
+    name          = string
+    auth_code     = optional(string)
+    auth_key      = optional(string)
+  }))
 }
 
 variable "license" {
@@ -44,17 +31,6 @@ variable "license" {
     bundle   = optional(string, "PAN_VM_300_BUNDLE_2")
     size     = optional(string, "SMALL")
     version  = optional(string, "9.1.3")
-  })
-  sensitive  = true
-}
-
-variable "registration_pin" {
-  description = "Palo Alto auto-registration values for retrieving license entitlements"
-
-  type = object({
-    id     = string
-    value  = string
-    expiry = string
   })
   sensitive  = true
 }
@@ -72,6 +48,28 @@ variable "master_key" {
   })
   default    = {}
   sensitive  = true
+}
+
+variable "max_instance_count" {
+  description = "Max number of Panorama instances for auto-scale; defaults to 1 if Panorama is not used"
+  type        = number
+  default     = 1
+}
+
+variable "mgmt_segment" {
+  description = "Management segment"
+  type        = string
+}
+
+variable "min_instance_count" {
+  description = "Minimum number of Panorama instances for auto-scale; defaults to 0 if Panorama is not used"
+  type        = number
+  default     = 0
+}
+
+variable "name" {
+  description = "Service name"
+  type        = string
 }
 
 variable "panorama" {
@@ -92,18 +90,20 @@ variable "password" {
   sensitive   = true
 }
 
-variable "instances" {
-  description = <<EOF
-  Palo Alto instance configuration:
-    - 'auth_code' is required if using 'BRING_YOUR_OWN' license_type
-    - 'auth_key' is required if Panorama is managing firewalls
-  EOF
+variable "registration_pin" {
+  description = "Palo Alto auto-registration values for retrieving license entitlements"
 
-  type = list(object({
-    name          = string
-    auth_code     = optional(string)
-    auth_key      = optional(string)
-  }))
+  type = object({
+    id     = string
+    value  = string
+    expiry = string
+  })
+  sensitive  = true
+}
+
+variable "segments" {
+  description = "List of segments to associate with the service"
+  type        = list(string)
 }
 
 variable "segment_options" {
