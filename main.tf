@@ -4,7 +4,7 @@ locals {
     for v in data.alkira_segment.service : v.id
   ]
 
-  filter_zone_segments = var.zones[*].segment
+  filter_zone_segments = var.segment_options[*].segment
 
 }
 
@@ -27,31 +27,36 @@ resource "alkira_service_pan" "service" {
   # service 
   name                    = var.name
   cxp                     = var.cxp
-  size                    = var.size
-  type                    = var.fw_type
-  version                 = var.fw_version
   segment_ids             = local.segment_id_list
   management_segment_id   = data.alkira_segment.mgmt.id
 
-  # credentials + licensing
-  bundle                  = var.bundle
-  pan_username            = var.credential.username
-  pan_password            = var.credential.password
-  license_type            = var.credential.license_type
+  # credentials
+  pan_username            = var.username
+  pan_password            = var.password
+
+  # licensing
+  bundle                  = var.license.bundle
+  license_type            = var.license.type
+  size                    = var.license.size
+  version                 = var.license.version
+
+  # registration
+  registration_pin_expiry = var.registration_pin.expiry
   registration_pin_id     = var.registration_pin.id
   registration_pin_value  = var.registration_pin.value
-  registration_pin_expiry = var.registration_pin.expiry
 
-  # if using master_key
+  # master key
   master_key_enabled = var.master_key.enabled
   master_key         = var.master_key.value
   master_key_expiry  = var.master_key.expiry
 
-  # panorama configuration
-  panorama_enabled        = var.panorama.enabled
+  # panorama
   panorama_device_group   = var.panorama.device_group
+  panorama_enabled        = var.panorama.enabled
   panorama_ip_addresses   = var.panorama.ip_addresses
   panorama_template       = var.panorama.template
+
+  # autoscale
   max_instance_count      = var.max_instance_count
   min_instance_count      = var.min_instance_count
 
@@ -69,16 +74,16 @@ resource "alkira_service_pan" "service" {
 
   }
 
- # handle nested schema for zone-to-group mappings
+ # handle nested schema for segment options
   dynamic "segment_options" {
     for_each = {
-      for o in var.zones : o.name => o
+      for o in var.segment_options : o.zone_name => o
     }
 
     content {
-      zone_name  = segment_options.value.name
       groups     = segment_options.value.groups
       segment_id = lookup(data.alkira_segment.zone, segment_options.value.segment).id
+      zone_name  = segment_options.value.zone_name
     }
 
   }
