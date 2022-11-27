@@ -4,12 +4,12 @@ variable "name" {
 }
 
 variable "cxp" {
-  description = "Alkira CXP to provision service in"
+  description = "CXP to provision service in"
   type        = string
 }
 
 variable "size" {
-  description = "Alkira service size"
+  description = "Service size"
   type        = string
   default     = "SMALL"
 }
@@ -24,18 +24,6 @@ variable "mgmt_segment" {
   type        = string
 }
 
-variable "fw_type" {
-  description = "VM-Series type"
-  type        = string
-  default     = "VM-300"
-}
-
-variable "fw_version" {
-  description = "VM-Series version"
-  type        = string
-  default     = "9.1.3"
-}
-
 variable "max_instance_count" {
   description = "Max number of Panorama instances for auto-scale; defaults to 1 if Panorama is not used"
   type        = number
@@ -48,20 +36,14 @@ variable "min_instance_count" {
   default     = 0
 }
 
-variable "bundle" {
-  description = "Software image bundle; required if using 'PAY_AS_YOU_GO' license_type"
-  type        = string
-  default     = "PAN_VM_300_BUNDLE_2"
-}
-
-variable "credential" {
-  description    = "Service credential values"
+variable "license" {
+  description    = "Licensing details"
 
   type = object({
-    username         = optional(string)
-    password         = optional(string)
-    license_type     = optional(string)
-    license_sub_type = optional(string)
+    type     = optional(string, "PAY_AS_YOU_GO")
+    bundle   = optional(string, "PAN_VM_300_BUNDLE_2")
+    size     = optional(string, "SMALL")
+    version  = optional(string, "9.1.3")
   })
   sensitive  = true
 }
@@ -104,6 +86,12 @@ variable "panorama" {
   default = {}
 }
 
+variable "password" {
+  description = "Firewall password"
+  type        = string
+  sensitive   = true
+}
+
 variable "instances" {
   description = <<EOF
   Palo Alto instance configuration:
@@ -113,19 +101,25 @@ variable "instances" {
 
   type = list(object({
     name          = string
-    license_key   = string
     auth_code     = optional(string)
     auth_key      = optional(string)
   }))
 }
 
-variable "zones" {
-  description = "Zone values; maps Alkira segments + groups to VM-Series Firewall Zones"
+variable "segment_options" {
+  description = "Maps Alkira segments + groups to VM-Series Firewall Zones"
 
   type = list(object({
-    name     = optional(string)
-    groups   = optional(list(string))
-    segment  = optional(string)
+    groups     = optional(list(string))
+    segment    = optional(string)
+    zone_name  = optional(string)
   }))
   default = []
+}
+
+variable "username" {
+  description = "Firewall username"
+  type        = string
+  default     = "admin"
+  sensitive   = true
 }
